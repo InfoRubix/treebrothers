@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treebrothers Sdn Bhd - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+                <p class="text-gray-600">Treebrothers Sdn Bhd Analytics</p>
+            </div>
+             <div class="flex items-center space-x-4 mt-4 sm:mt-0">
+                <div class="text-sm text-gray-500">
+                    <p>Last updated: <span id="last-updated">...</span></p>
+                </div>
+                <a href="index.html" class="py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700">Generator</a>
+                <a href="anabinapettycash.html" class="py-2 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700">Petty Cash</a>
+            </div>
+        </header>
+
+        <!-- Main Content: Loading State -->
+        <div id="loading-state" class="text-center py-20">
+            <i class="fas fa-spinner fa-spin text-4xl text-gray-400"></i>
+            <p class="mt-4 text-gray-600">Loading dashboard data...</p>
+        </div>
+
+        <!-- Main Content: Data Loaded -->
+        <div id="dashboard-content" class="hidden">
+            <!-- Key Metrics -->
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow text-center">
+                    <h3 class="text-gray-500 text-sm font-medium">Total Revenue (Invoiced)</h3>
+                    <p id="total-revenue" class="text-3xl font-bold mt-1">RM 0.00</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow text-center">
+                    <h3 class="text-gray-500 text-sm font-medium">Total Receipts (Collected)</h3>
+                    <p id="total-receipts" class="text-3xl font-bold mt-1 text-green-600">RM 0.00</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow text-center">
+                    <h3 class="text-gray-500 text-sm font-medium">Total Quotations</h3>
+                    <p id="total-quotations" class="text-3xl font-bold mt-1">0</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow text-center">
+                    <h3 class="text-gray-500 text-sm font-medium">Total Invoices</h3>
+                    <p id="total-invoices" class="text-3xl font-bold mt-1">0</p>
+                </div>
+                 <div class="bg-white p-6 rounded-lg shadow text-center">
+                    <h3 class="text-gray-500 text-sm font-medium">Total Clients</h3>
+                    <p id="total-clients" class="text-3xl font-bold mt-1">0</p>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="font-semibold mb-4">Documents by Type</h3>
+                    <canvas id="docsByTypeChart"></canvas>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="font-semibold mb-4">Invoice Revenue Over Time</h3>
+                    <canvas id="revenueOverTimeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Tables -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="font-semibold mb-4">Top Clients by Invoice Value</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="p-3 font-medium">Client Name</th>
+                                    <th class="p-3 font-medium text-right">Total Value</th>
+                                    <th class="p-3 font-medium text-center">Docs</th>
+                                </tr>
+                            </thead>
+                            <tbody id="top-clients-table">
+                                <!-- JS will populate this -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="font-semibold mb-4">Recent Documents</h3>
+                     <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="p-3 font-medium">Date</th>
+                                    <th class="p-3 font-medium">Type</th>
+                                    <th class="p-3 font-medium">Number</th>
+                                    <th class="p-3 font-medium">Client</th>
+                                    <th class="p-3 font-medium text-right">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-docs-table">
+                                <!-- JS will populate this -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQtQyUEmUuVRGr82b0_mefxPQBvEePZlO4J2XUzoN0SKhlHYg-8Y7QDlaDpgGkY8xE/exec";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchDashboardData();
+        });
+
+        function fetchDashboardData() {
+            fetch(SCRIPT_URL + '?action=getDashboardData')
+                .then(res => res.json())
+                .then(response => {
+                    if (response.status === 'success') {
+                        processDashboardData(response.data);
+                        document.getElementById('loading-state').classList.add('hidden');
+                        document.getElementById('dashboard-content').classList.remove('hidden');
+                        document.getElementById('last-updated').textContent = new Date().toLocaleString();
+                    } else {
+                        throw new Error(response.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching dashboard data:', error);
+                     document.getElementById('loading-state').innerHTML = `<p class="text-red-500">Failed to load dashboard data: ${error.message}</p>`;
+                });
+        }
+
+        function processDashboardData(data) {
+            const { documents, clients } = data;
+            
+            // 1. Process Key Metrics
+            const totalRevenue = documents
+                .filter(d => d.DocumentType === 'invoice')
+                .reduce((sum, doc) => sum + parseFloat(doc.Total || 0), 0);
+            const totalReceipts = documents
+                .filter(d => d.DocumentType === 'receipt')
+                .reduce((sum, doc) => sum + parseFloat(doc.Total || 0), 0);
+            const totalQuotations = documents.filter(d => d.DocumentType === 'quotation').length;
+            const totalInvoices = documents.filter(d => d.DocumentType === 'invoice').length;
+            
+            document.getElementById('total-revenue').textContent = `RM ${totalRevenue.toFixed(2)}`;
+            document.getElementById('total-receipts').textContent = `RM ${totalReceipts.toFixed(2)}`;
+            document.getElementById('total-quotations').textContent = totalQuotations;
+            document.getElementById('total-invoices').textContent = totalInvoices;
+            document.getElementById('total-clients').textContent = clients.length;
+
+            // 2. Process Data for Charts
+            // Docs by Type Chart
+            const docCounts = documents.reduce((acc, doc) => {
+                acc[doc.DocumentType] = (acc[doc.DocumentType] || 0) + 1;
+                return acc;
+            }, {});
+            createDocsByTypeChart(docCounts);
+
+            // Revenue Over Time Chart
+            const revenueData = documents
+                .filter(d => d.DocumentType === 'invoice')
+                .map(d => ({ date: new Date(d.DocumentDate), amount: parseFloat(d.Total || 0) }))
+                .sort((a, b) => a.date - b.date);
+            createRevenueOverTimeChart(revenueData);
+            
+            // 3. Process Data for Tables
+            // Top Clients Table
+            const clientData = documents.reduce((acc, doc) => {
+                const clientName = doc.ClientName;
+                if (!acc[clientName]) {
+                    acc[clientName] = { totalValue: 0, docCount: 0 };
+                }
+                if (doc.DocumentType === 'invoice') {
+                    acc[clientName].totalValue += parseFloat(doc.Total || 0);
+                }
+                acc[clientName].docCount += 1;
+                return acc;
+            }, {});
+
+            const sortedClients = Object.entries(clientData)
+                .sort(([, a], [, b]) => b.totalValue - a.totalValue)
+                .slice(0, 5); // Top 5
+            populateTopClientsTable(sortedClients);
+            
+            // Recent Documents Table
+            const recentDocs = documents
+                .sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp))
+                .slice(0, 5); // Last 5
+            populateRecentDocsTable(recentDocs);
+        }
+
+        function createDocsByTypeChart(data) {
+            const ctx = document.getElementById('docsByTypeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label: 'Document Count',
+                        data: Object.values(data),
+                        backgroundColor: ['#3b82f6', '#16a34a', '#ef4444', '#f97316', '#8b5cf6'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        function createRevenueOverTimeChart(data) {
+            const ctx = document.getElementById('revenueOverTimeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.date.toLocaleDateString('en-CA')), // YYYY-MM-DD
+                    datasets: [{
+                        label: 'Invoice Revenue',
+                        data: data.map(d => d.amount),
+                        borderColor: '#16a34a',
+                        backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+        
+        function populateTopClientsTable(clients) {
+            const tableBody = document.getElementById('top-clients-table');
+            tableBody.innerHTML = '';
+            clients.forEach(([name, data]) => {
+                const row = `
+                    <tr class="border-b">
+                        <td class="p-3 font-medium">${name}</td>
+                        <td class="p-3 text-right">RM ${data.totalValue.toFixed(2)}</td>
+                        <td class="p-3 text-center">${data.docCount}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        function populateRecentDocsTable(docs) {
+            const tableBody = document.getElementById('recent-docs-table');
+            tableBody.innerHTML = '';
+            docs.forEach(doc => {
+                const row = `
+                    <tr class="border-b">
+                        <td class="p-3">${new Date(doc.Timestamp).toLocaleDateString()}</td>
+                        <td class="p-3">${doc.DocumentType}</td>
+                        <td class="p-3">${doc.DocumentNumber}</td>
+                        <td class="p-3">${doc.ClientName}</td>
+                        <td class="p-3 text-right">RM ${parseFloat(doc.Total || 0).toFixed(2)}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+
+    </script>
+</body>
+</html>
