@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treebrothers Sdn Bhd - Document Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+        }
+        .document-container {
+            border: 1px solid #e5e7eb;
+            background-color: white;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        @media print {
+            body {
+                background-color: white;
+            }
+            body * {
+                visibility: hidden;
+            }
+            #document-preview, #document-preview * {
+                visibility: visible;
+            }
+            #document-preview {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none;
+                box-shadow: none;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+        .tab-button.active {
+            border-bottom-color: #1d4ed8;
+            color: #1d4ed8;
+            font-weight: 600;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+        }
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            font-size: 1.125rem;
+            transition: background-color 0.3s;
+        }
+        .primary-action-btn { background-color: #16a34a; color: white; }
+        .primary-action-btn:hover { background-color: #15803d; }
+        .accordion-header { cursor: pointer; }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .accordion-content.open {
+            max-height: 500px; /* Adjust as needed */
+        }
+        .chevron-icon { transition: transform 0.3s ease; }
+        .chevron-icon.open { transform: rotate(180deg); }
+
+        /* New Design Styles */
+        .brand-header {
+            background-color: #228B22; /* Forest Green */
+            height: 8px;
+        }
+        .invoice-details-table td {
+            padding: 2px 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 lg:p-8">
+        
+        <header class="text-center mb-8 no-print relative">
+            <h1 class="text-4xl font-bold text-gray-900">Treebrothers Sdn Bhd</h1>
+            <p class="text-lg text-gray-600">Document Generator</p>
+            <div class="absolute top-0 right-0 flex space-x-2">
+                <a href="dashboard.html" class="py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700">Dashboard</a>
+                <a href="anabinapettycash.html" class="py-2 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700">Petty Cash</a>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <div class="no-print">
+                <div class="mb-6 border-b border-gray-200">
+                    <nav class="-mb-px flex space-x-6" id="tab-container">
+                        <button onclick="switchTab('quotation')" class="tab-button active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent" data-type="quotation">Quotation</button>
+                        <button onclick="switchTab('invoice')" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent" data-type="invoice">Invoice</button>
+                        <button onclick="switchTab('receipt')" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent" data-type="receipt">Receipt</button>
+                        <button onclick="switchTab('purchase-order')" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent" data-type="purchase-order">Purchase Order</button>
+                        <button onclick="switchTab('claim')" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent" data-type="claim">Claim</button>
+                    </nav>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Load Existing Document -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div id="load-accordion-header" class="accordion-header flex justify-between items-center">
+                            <h3 class="text-xl font-semibold">Load Existing Document</h3>
+                            <i id="load-chevron" class="fas fa-chevron-down chevron-icon"></i>
+                        </div>
+                        <div id="load-accordion-content" class="accordion-content mt-4">
+                            <div class="space-y-2">
+                                <label for="document-select" class="block text-sm font-medium text-gray-700">Select a document to edit:</label>
+                                <select id="document-select" class="form-input">
+                                    <option value="">Loading documents...</option>
+                                </select>
+                                <div class="grid grid-cols-2 gap-2 mt-2">
+                                    <button onclick="loadSelectedDocument()" class="w-full py-2 px-4 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700">Load Document</button>
+                                    <button onclick="location.reload()" class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">New Document</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Convert Document -->
+                     <div id="convert-section" class="bg-white p-6 rounded-lg shadow hidden">
+                         <h3 class="text-xl font-semibold mb-2">Convert Document</h3>
+                         <p class="text-sm text-gray-600 mb-4">The current document can be converted to the next stage.</p>
+                         <div id="convert-buttons"></div>
+                     </div>
+
+
+                    <!-- Your Company Information -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div id="company-accordion-header" class="accordion-header flex justify-between items-center">
+                            <h3 class="text-xl font-semibold">Your Company Information</h3>
+                            <i id="company-chevron" class="fas fa-chevron-down chevron-icon"></i>
+                        </div>
+                        <div id="company-accordion-content" class="accordion-content mt-4">
+                            <div class="space-y-4">
+                                 <input id="companyName" type="text" placeholder="Your Company Name" class="form-input" oninput="updatePreview()" value="TREEBROTHERS SDN BHD">
+                                 <textarea id="companyAddress" placeholder="Your Company Address" class="form-input" rows="3" oninput="updatePreview()">D-2-21 Jalan 8/35, Seri Bangi Seksyen 8\n43650 Bandar Baru Bangi Selangor</textarea>
+                                 <input id="companySsm" type="text" placeholder="Your SSM No." class="form-input" oninput="updatePreview()" value="SSM : 201901038029 (1347359-K)">
+                                 <input id="companyEmail" type="email" placeholder="Your Company Email" class="form-input" oninput="updatePreview()" value="treebrothers.sb@gmail.com">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Client/Staff Information -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="flex justify-between items-center mb-4 border-b pb-2">
+                             <h3 id="client-form-header" class="text-xl font-semibold">Client Information</h3>
+                             <button onclick="saveClient()" class="text-sm bg-blue-500 text-white py-1 px-3 rounded-lg hover:bg-blue-600">Save Client</button>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="client-select" class="block text-sm font-medium text-gray-700 mb-1">Select Existing Client</label>
+                                <select id="client-select" class="form-input" onchange="populateClientInfo(this.value)">
+                                    <option value="">-- New Client --</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input id="clientName" type="text" placeholder="Client Name" class="form-input" oninput="updatePreview()">
+                                <input id="clientCompany" type="text" placeholder="Client Company (Optional)" class="form-input" oninput="updatePreview()">
+                                <textarea id="clientAddress" placeholder="Client Address" class="form-input md:col-span-2" rows="3" oninput="updatePreview()"></textarea>
+                                <input id="clientEmail" type="email" placeholder="Client Email" class="form-input" oninput="updatePreview()">
+                                <input id="clientPhone" type="tel" placeholder="Client Phone" class="form-input" oninput="updatePreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-semibold mb-4 border-b pb-2">Document Details</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input id="docNumber" type="text" placeholder="Quotation #" class="form-input" oninput="updatePreview()">
+                            <input id="docDate" type="date" class="form-input" oninput="updatePreview()">
+                            <input id="docDueDate" type="text" placeholder="Validity (e.g., 7 Days)" class="form-input" oninput="updatePreview()" value="7 Days">
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-semibold mb-4 border-b pb-2">Items / Services</h3>
+                        <div id="items-container" class="space-y-4"></div>
+                        <button onclick="addItem()" class="mt-4 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md font-semibold bg-blue-600 text-white hover:bg-blue-700">
+                            <i class="fas fa-plus"></i> Add Item
+                        </button>
+                    </div>
+                    
+                     <div class="bg-white p-6 rounded-lg shadow">
+                         <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notes & Summary</h3>
+                         <textarea id="notes" placeholder="Add any notes here" class="form-input w-full" rows="4" oninput="updatePreview()"></textarea>
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                             <div class="flex items-center gap-2">
+                                 <label for="taxRate" class="font-medium">Tax Rate (%):</label>
+                                 <input id="taxRate" type="number" value="0" min="0" class="form-input w-24" oninput="updatePreview()">
+                             </div>
+                         </div>
+                     </div>
+
+                    <!-- Action Button -->
+                    <div id="status-message" class="text-center p-3 rounded-md hidden"></div>
+                    <div class="mt-2">
+                        <button id="action-button" onclick="saveAndPrint()" class="action-btn primary-action-btn">
+                            <i class="fas fa-save"></i> Save & Print / PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="document-preview-container" class="lg:h-full">
+                <div id="document-preview" class="document-container p-0 text-sm">
+                    <div class="brand-header"></div>
+                    <div class="p-8 md:p-12">
+                        <!-- Header -->
+                        <div class="flex justify-between items-start">
+                            <div class="logo-container">
+                                <img src="https://i.ibb.co/Fkf0JWxt/smol-logo-baru-treebrothers-03.png" alt="Treebrothers Sdn Bhd Logo" class="w-48">
+                                <div class="text-xs text-gray-600 mt-2">
+                                    <p id="preview-companySsm"></p>
+                                    <p id="preview-companyAddress" class="whitespace-pre-line"></p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <h1 id="preview-docType" class="text-2xl font-bold uppercase text-gray-800">Invoice</h1>
+                                <table class="invoice-details-table mt-2 text-xs text-gray-600">
+                                    <tbody>
+                                        <tr>
+                                            <td class="font-semibold pr-4">NO:</td>
+                                            <td id="preview-docNumber"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-semibold pr-4">Date:</td>
+                                            <td id="preview-docDate"></td>
+                                        </tr>
+                                        <tr>
+                                            <td id="preview-dueDateLabel" class="font-semibold pr-4">Due Date:</td>
+                                            <td id="preview-docDueDate"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Client Info -->
+                        <div class="mt-10">
+                            <p id="preview-client-header" class="font-semibold text-gray-700 text-xs">Bill To:</p>
+                            <div class="text-gray-600 text-xs mt-1">
+                                <p id="preview-clientName" class="font-bold text-gray-800"></p>
+                                <p id="preview-clientCompany"></p>
+                                <p id="preview-clientAddress" class="whitespace-pre-line"></p>
+                                <p id="preview-clientEmail"></p>
+                                <p id="preview-clientPhone"></p>
+                            </div>
+                        </div>
+
+                        <!-- Items Table -->
+                        <div class="mt-8">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="bg-gray-800 text-white text-xs">
+                                        <th class="p-2 font-semibold rounded-l-lg">Description</th>
+                                        <th class="p-2 font-semibold text-right">Qty</th>
+                                        <th class="p-2 font-semibold text-right">Price</th>
+                                        <th class="p-2 font-semibold text-right rounded-r-lg">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="preview-items-body" class="text-xs text-gray-700">
+                                    <!-- Preview items will be injected here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Totals -->
+                        <div class="flex justify-end mt-6">
+                            <div class="w-full max-w-xs space-y-2">
+                                <div class="flex justify-between text-xs">
+                                    <span class="font-semibold">Subtotal:</span>
+                                    <span id="preview-subtotal">RM 0.00</span>
+                                </div>
+                                <div class="flex justify-between text-xs">
+                                    <span class="font-semibold">Tax (<span id="preview-taxRate">0</span>%):</span>
+                                    <span id="preview-taxAmount">RM 0.00</span>
+                                </div>
+                                <div class="flex justify-between text-base font-bold border-t-2 border-gray-800 pt-2 mt-2">
+                                    <span>Total:</span>
+                                    <span id="preview-total">RM 0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="mt-10">
+                             <p class="font-semibold text-gray-700 text-xs">Notes:</p>
+                             <p id="preview-notes" class="text-xs text-gray-600 whitespace-pre-line mt-1"></p>
+                        </div>
+                        
+                    </div>
+                    <!-- Footer -->
+                    <div id="payment-footer" class="bg-gray-100 p-8 md:p-12 mt-12 text-xs">
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-2">Payment Information:</h4>
+                            <p class="text-gray-500 mb-2">Payment to be made to Treebrothers Sdn Bhd.</p>
+                            <table class="text-gray-600 mb-8">
+                                <tbody>
+                                    <tr>
+                                        <td class="font-semibold pr-4">Account Name:</td>
+                                        <td>TREEBROTHERS SDN BHD</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-semibold pr-4">Bank:</td>
+                                        <td>CIMB</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-semibold pr-4">Account No:</td>
+                                        <td>86-0441987-6</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-semibold pr-4">Email:</td>
+                                        <td id="preview-companyEmail">treebrothers.sb@gmail.com</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="text-right">
+                                <p class="font-bold text-base">Thank You</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'quotation';
+        let itemCounter = 0;
+        let allDocuments = [];
+        let allClients = [];
+        let currentlyEditingRow = null;
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQtQyUEmUuVRGr82b0_mefxPQBvEePZlO4J2XUzoN0SKhlHYg-8Y7QDlaDpgGkY8xE/exec";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            document.getElementById('docDate').value = today.toISOString().split('T')[0];
+            
+            // Setup accordions
+            setupAccordion('company-accordion-header', 'company-accordion-content', 'company-chevron');
+            setupAccordion('load-accordion-header', 'load-accordion-content', 'load-chevron');
+
+            // Load clients and documents
+            fetchClients();
+            fetchDocuments();
+
+            // Initial setup
+            addItem();
+            updatePreview();
+        });
+
+        function setupAccordion(headerId, contentId, chevronId) {
+             const accordionHeader = document.getElementById(headerId);
+            const accordionContent = document.getElementById(contentId);
+            const chevron = document.getElementById(chevronId);
+            accordionHeader.addEventListener('click', () => {
+                accordionContent.classList.toggle('open');
+                chevron.classList.toggle('open');
+            });
+        }
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+            const docNumberInput = document.getElementById('docNumber');
+            const previewDocType = document.getElementById('preview-docType');
+            const previewDueDateLabel = document.getElementById('preview-dueDateLabel');
+            const paymentFooter = document.getElementById('payment-footer');
+            const clientFormHeader = document.getElementById('client-form-header');
+            const previewClientHeader = document.getElementById('preview-client-header');
+            
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-button[data-type="${tabName}"]`).classList.add('active');
+
+            // Reset to default labels first
+            clientFormHeader.textContent = "Client Information";
+            previewClientHeader.textContent = "Bill To:";
+            previewDueDateLabel.textContent = "Due Date:";
+            paymentFooter.style.display = 'block';
+
+            switch(tabName) {
+                case 'quotation':
+                    docNumberInput.placeholder = "Quotation #";
+                    previewDocType.textContent = "Quotation";
+                    previewDueDateLabel.textContent = "Validity:";
+                    break;
+                case 'invoice':
+                    docNumberInput.placeholder = "Invoice #";
+                    previewDocType.textContent = "Invoice";
+                    break;
+                case 'receipt':
+                    docNumberInput.placeholder = "Receipt #";
+                    previewDocType.textContent = "Receipt";
+                    previewDueDateLabel.textContent = "Payment Date:";
+                    paymentFooter.style.display = 'none';
+                    break;
+                case 'purchase-order':
+                    docNumberInput.placeholder = "PO #";
+                    previewDocType.textContent = "Purchase Order";
+                    previewDueDateLabel.textContent = "Delivery Date:";
+                    paymentFooter.style.display = 'none';
+                    break;
+                case 'claim':
+                    docNumberInput.placeholder = "Claim #";
+                    previewDocType.textContent = "Claim";
+                    previewDueDateLabel.textContent = "Claim Date:";
+                    clientFormHeader.textContent = "Staff Information";
+                    previewClientHeader.textContent = "Claimant:";
+                    paymentFooter.style.display = 'none';
+                    break;
+            }
+            updatePreview();
+        }
+
+        function addItem(desc = '', qty = 1, price = 0) {
+            itemCounter++;
+            const itemsContainer = document.getElementById('items-container');
+            const itemRow = document.createElement('div');
+            itemRow.classList.add('grid', 'grid-cols-12', 'gap-2', 'items-center');
+            itemRow.id = `item-row-${itemCounter}`;
+            itemRow.innerHTML = `
+                <input type="text" placeholder="Item / Service Description" class="form-input col-span-12 md:col-span-5 item-desc" value="${desc}" oninput="updatePreview()">
+                <input type="number" value="${qty}" min="0" placeholder="Qty" class="form-input col-span-4 md:col-span-2 item-qty" oninput="updatePreview()">
+                <input type="number" value="${price}" min="0" step="0.01" placeholder="Price" class="form-input col-span-4 md:col-span-3 item-price" oninput="updatePreview()">
+                <button onclick="removeItem(${itemCounter})" class="bg-red-600 hover:bg-red-700 text-white rounded-md h-10 col-span-4 md:col-span-2 flex items-center justify-center"><i class="fas fa-trash-alt"></i></button>
+            `;
+            itemsContainer.appendChild(itemRow);
+        }
+
+        function removeItem(id) {
+            document.getElementById(`item-row-${id}`)?.remove();
+            updatePreview();
+        }
+
+        function updatePreview() {
+            // Update company info
+            const companyName = document.getElementById('companyName').value;
+            document.getElementById('preview-companyAddress').textContent = document.getElementById('companyAddress').value;
+            document.getElementById('preview-companySsm').textContent = document.getElementById('companySsm').value;
+            document.getElementById('preview-companyEmail').textContent = document.getElementById('companyEmail').value;
+
+            // Update client info
+            document.getElementById('preview-clientName').textContent = document.getElementById('clientName').value;
+            document.getElementById('preview-clientCompany').textContent = document.getElementById('clientCompany').value;
+            document.getElementById('preview-clientAddress').textContent = document.getElementById('clientAddress').value;
+            document.getElementById('preview-clientEmail').textContent = document.getElementById('clientEmail').value;
+            document.getElementById('preview-clientPhone').textContent = document.getElementById('clientPhone').value;
+            
+            // Update document details
+            document.getElementById('preview-docNumber').textContent = document.getElementById('docNumber').value;
+            const dateValue = document.getElementById('docDate').value;
+            if (dateValue) {
+                const [year, month, day] = dateValue.split('-');
+                document.getElementById('preview-docDate').textContent = `${day}/${month}/${year}`;
+            } else {
+                 document.getElementById('preview-docDate').textContent = '';
+            }
+            document.getElementById('preview-docDueDate').textContent = document.getElementById('docDueDate').value;
+            document.getElementById('preview-notes').textContent = document.getElementById('notes').value;
+
+            const itemsBody = document.getElementById('preview-items-body');
+            itemsBody.innerHTML = '';
+            let subtotal = 0;
+            
+            document.querySelectorAll('#items-container > div').forEach(row => {
+                const desc = row.querySelector('.item-desc').value;
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const total = qty * price;
+                subtotal += total;
+
+                const previewRow = document.createElement('tr');
+                previewRow.classList.add('border-b');
+                previewRow.innerHTML = `
+                    <td class="p-2">${desc || '...'}</td>
+                    <td class="p-2 text-right">${qty}</td>
+                    <td class="p-2 text-right">${formatCurrency(price)}</td>
+                    <td class="p-2 text-right font-semibold">${formatCurrency(total)}</td>
+                `;
+                itemsBody.appendChild(previewRow);
+            });
+            
+            const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+            const taxAmount = subtotal * (taxRate / 100);
+            const total = subtotal + taxAmount;
+
+            document.getElementById('preview-subtotal').textContent = formatCurrency(subtotal);
+            document.getElementById('preview-taxRate').textContent = taxRate;
+            document.getElementById('preview-taxAmount').textContent = formatCurrency(taxAmount);
+            document.getElementById('preview-total').textContent = formatCurrency(total);
+        }
+
+        function formatCurrency(amount) {
+            return `RM ${amount.toFixed(2)}`;
+        }
+
+        function printDocument() {
+            window.print();
+        }
+
+        function showStatusMessage(message, isError = false) {
+            const statusEl = document.getElementById('status-message');
+            statusEl.textContent = message;
+            statusEl.className = `text-center p-3 rounded-md mb-4 ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+            statusEl.classList.remove('hidden');
+        }
+
+        // --- Client Records Functions ---
+        function fetchClients() {
+            fetch(SCRIPT_URL + '?action=getClients')
+                .then(res => res.json())
+                .then(response => {
+                    if (response.status === 'success') {
+                        allClients = response.data;
+                        populateClientSelect();
+                    } else {
+                        throw new Error(response.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching clients:', error);
+                    const clientSelect = document.getElementById('client-select');
+                    clientSelect.innerHTML = '<option value="">Error loading clients</option>';
+                });
+        }
+
+        function populateClientSelect() {
+            const selectEl = document.getElementById('client-select');
+            selectEl.innerHTML = '<option value="">-- New Client --</option>'; // Clear existing options
+            allClients.sort((a, b) => a.ClientName.localeCompare(b.ClientName)); // Sort alphabetically
+            allClients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.ClientName;
+                option.textContent = client.ClientName;
+                selectEl.appendChild(option);
+            });
+        }
+
+        function saveClient() {
+            const clientName = document.getElementById('clientName').value.trim();
+            if (!clientName) {
+                showStatusMessage('Client Name is required to save a record.', true);
+                return;
+            }
+
+            const clientData = {
+                name: clientName,
+                company: document.getElementById('clientCompany').value,
+                address: document.getElementById('clientAddress').value,
+                email: document.getElementById('clientEmail').value,
+                phone: document.getElementById('clientPhone').value,
+            };
+
+            const payload = {
+                action: 'saveClient',
+                data: clientData
+            };
+            
+            showStatusMessage('Saving client...', false);
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
+                body: JSON.stringify(payload),
+                redirect: 'follow',
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showStatusMessage(data.message, false);
+                    fetchClients(); // Refresh the client list
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showStatusMessage(`Error: ${error.message}`, true);
+            });
+        }
+
+        function populateClientInfo(clientName) {
+            if (!clientName) {
+                // Clear fields for new client
+                document.getElementById('clientName').value = '';
+                document.getElementById('clientCompany').value = '';
+                document.getElementById('clientAddress').value = '';
+                document.getElementById('clientEmail').value = '';
+                document.getElementById('clientPhone').value = '';
+            } else {
+                const client = allClients.find(c => c.ClientName === clientName);
+                if (client) {
+                    document.getElementById('clientName').value = client.ClientName;
+                    document.getElementById('clientCompany').value = client.ClientCompany;
+                    document.getElementById('clientAddress').value = client.ClientAddress;
+                    document.getElementById('clientEmail').value = client.ClientEmail || '';
+                    document.getElementById('clientPhone').value = client.ClientPhone || '';
+                }
+            }
+            updatePreview();
+        }
+
+        // --- Document Loading/Saving ---
+
+        function fetchDocuments() {
+            fetch(SCRIPT_URL + '?action=getDocuments')
+                .then(res => res.json())
+                .then(response => {
+                    if (response.status === 'success') {
+                        allDocuments = response.data;
+                        populateDocumentSelect();
+                    } else {
+                        throw new Error(response.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching documents:', error);
+                    const docSelect = document.getElementById('document-select');
+                    docSelect.innerHTML = '<option value="">Error loading documents</option>';
+                });
+        }
+
+        function populateDocumentSelect() {
+            const docSelect = document.getElementById('document-select');
+            docSelect.innerHTML = '<option value="">-- Select a document --</option>';
+            allDocuments.forEach(doc => {
+                const option = document.createElement('option');
+                option.value = doc.rowNumber;
+                option.textContent = `${doc.DocumentType}: ${doc.DocumentNumber} (${doc.ClientName})`;
+                docSelect.appendChild(option);
+            });
+        }
+        
+        function loadSelectedDocument() {
+            const selectedRowNumber = document.getElementById('document-select').value;
+            if (!selectedRowNumber) return;
+
+            const doc = allDocuments.find(d => d.rowNumber == selectedRowNumber);
+            if (!doc) return;
+
+            currentlyEditingRow = doc.rowNumber;
+
+            // Populate form fields
+            switchTab(doc.DocumentType);
+            document.getElementById('docNumber').value = doc.DocumentNumber;
+            document.getElementById('docDate').value = new Date(doc.DocumentDate).toISOString().split('T')[0];
+            document.getElementById('docDueDate').value = doc.DueDate;
+            document.getElementById('clientName').value = doc.ClientName;
+            document.getElementById('clientCompany').value = doc.ClientCompany;
+            document.getElementById('clientAddress').value = doc.ClientAddress;
+            document.getElementById('clientEmail').value = doc.ClientEmail || '';
+            document.getElementById('clientPhone').value = doc.ClientPhone || '';
+            document.getElementById('notes').value = doc.Notes;
+            document.getElementById('taxRate').value = doc.TaxRate;
+
+            // Populate items
+            const itemsContainer = document.getElementById('items-container');
+            itemsContainer.innerHTML = ''; // Clear existing items
+            try {
+                const items = JSON.parse(doc.ItemsJSON);
+                if (Array.isArray(items)) {
+                    items.forEach(item => addItem(item.desc, item.qty, item.price));
+                }
+            } catch(e) {
+                console.error("Could not parse items JSON:", e);
+                addItem(); // Add a blank item if parsing fails
+            }
+            
+            updatePreview();
+            showStatusMessage(`Loaded ${doc.DocumentType}: ${doc.DocumentNumber}`, false);
+            updateConvertButtons();
+        }
+        
+        function updateConvertButtons() {
+            const convertSection = document.getElementById('convert-section');
+            const convertButtons = document.getElementById('convert-buttons');
+            convertButtons.innerHTML = ''; // Clear old buttons
+
+            if (!currentlyEditingRow) {
+                convertSection.classList.add('hidden');
+                return;
+            }
+
+            let canConvert = false;
+            if (currentTab === 'quotation') {
+                canConvert = true;
+                convertButtons.innerHTML = `<button onclick="convertDocument('invoice')" class="w-full py-2 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700">Convert to Invoice</button>`;
+            } else if (currentTab === 'invoice') {
+                canConvert = true;
+                convertButtons.innerHTML = `<button onclick="convertDocument('receipt')" class="w-full py-2 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700">Convert to Receipt</button>`;
+            }
+
+            if (canConvert) {
+                convertSection.classList.remove('hidden');
+            } else {
+                convertSection.classList.add('hidden');
+            }
+        }
+
+        function convertDocument(targetType) {
+            const originalDocNumber = document.getElementById('docNumber').value;
+            const originalDocType = currentTab.charAt(0).toUpperCase() + currentTab.slice(1);
+            
+            // This is now a new document, not an update
+            currentlyEditingRow = null; 
+            document.getElementById('document-select').value = '';
+            
+            // Switch to the new tab UI
+            switchTab(targetType);
+            
+            // Suggest new doc number and update date
+            document.getElementById('docNumber').value = originalDocNumber.replace(originalDocType.substring(0,3).toUpperCase(), targetType.substring(0,3).toUpperCase());
+            document.getElementById('docDate').value = new Date().toISOString().split('T')[0];
+
+            // Add reference note
+            const notesField = document.getElementById('notes');
+            const referenceNote = `Based on ${originalDocType} #${originalDocNumber}`;
+            const existingNotes = notesField.value.split('\n').filter(line => !line.startsWith('Based on')).join('\n');
+            notesField.value = existingNotes ? `${referenceNote}\n${existingNotes}` : referenceNote;
+
+            // The items are already in the form fields, so we just need to trigger a final update.
+            updatePreview();
+            updateConvertButtons(); // This will hide the convert section
+            showStatusMessage(`Converted to new ${targetType}. Please review and save.`, false);
+        }
+
+        function saveAndPrint() {
+            const actionButton = document.getElementById('action-button');
+            showStatusMessage('Saving to Google Sheet...', false);
+            actionButton.disabled = true;
+            actionButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            const items = [];
+            let subtotal = 0;
+            document.querySelectorAll('#items-container > div').forEach(row => {
+                const desc = row.querySelector('.item-desc').value;
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                subtotal += qty * price;
+                items.push({ desc, qty, price });
+            });
+
+            const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+            const taxAmount = subtotal * (taxRate / 100);
+            const totalAmount = subtotal + taxAmount;
+
+            const docData = {
+                documentType: currentTab,
+                documentNumber: document.getElementById('docNumber').value,
+                documentDate: document.getElementById('docDate').value,
+                dueDate: document.getElementById('docDueDate').value,
+                clientName: document.getElementById('clientName').value,
+                clientCompany: document.getElementById('clientCompany').value,
+                clientAddress: document.getElementById('clientAddress').value,
+                clientEmail: document.getElementById('clientEmail').value,
+                clientPhone: document.getElementById('clientPhone').value,
+                items: items,
+                subtotal: subtotal,
+                taxRate: taxRate,
+                taxAmount: taxAmount,
+                totalAmount: totalAmount,
+                notes: document.getElementById('notes').value,
+            };
+            
+            const payload = {
+                action: 'saveDocument',
+                update: !!currentlyEditingRow,
+                rowNumber: currentlyEditingRow,
+                data: docData
+            };
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
+                body: JSON.stringify(payload),
+                redirect: 'follow', 
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showStatusMessage(data.message + ' Opening print dialog...', false);
+                    currentlyEditingRow = null; // Reset editing state
+                    fetchDocuments(); // Refresh the list
+                    printDocument();
+                } else {
+                    throw new Error(data.message || 'An unknown error occurred while saving.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showStatusMessage(`Error: ${error.message}`, true);
+            })
+            .finally(() => {
+                actionButton.disabled = false;
+                actionButton.innerHTML = '<i class="fas fa-save"></i> Save & Print / PDF';
+            });
+        }
+    </script>
+</body>
+</html>
