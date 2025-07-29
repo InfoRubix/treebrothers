@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treebrothers Petty Cash Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .loader { border-top-color: #3498db; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
+        @-webkit-keyframes spin { 0% { -webkit-transform: rotate(0deg); } 100% { -webkit-transform: rotate(360deg); } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .chart-container { position: relative; height: 350px; width: 100%; }
+        #toggleAnalysisIcon { transition: transform 0.3s; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        <header class="mb-8 relative">
+            <h1 class="text-4xl font-bold text-gray-800">Treebrothers Petty Cash Hub</h1>
+            <p class="text-gray-500">A simple way to track your cash flow and expenses.</p>
+            <div class="absolute top-0 right-0 flex space-x-2">
+                <a href="index.html" class="py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700">Generator</a>
+                <a href="dashboard.html" class="py-2 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700">Dashboard</a>
+            </div>
+        </header>
+
+        <!-- Main Dashboard -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-md flex flex-col justify-center items-center"><h2 class="text-lg font-semibold text-gray-500 mb-2">Current Balance</h2><p id="currentBalance" class="text-3xl font-bold text-blue-600">RM 0.00</p></div>
+            <div class="bg-white p-6 rounded-xl shadow-md flex flex-col justify-center items-center"><h2 class="text-lg font-semibold text-gray-500 mb-2">Total In</h2><p id="totalIn" class="text-3xl font-bold text-green-500">RM 0.00</p></div>
+            <div class="bg-white p-6 rounded-xl shadow-md flex flex-col justify-center items-center"><h2 class="text-lg font-semibold text-gray-500 mb-2">Total Out</h2><p id="totalOut" class="text-3xl font-bold text-red-500">RM 0.00</p></div>
+        </section>
+
+        <!-- Analysis Section -->
+        <section id="analysis-section" class="bg-white p-6 rounded-xl shadow-md mb-8">
+            <div class="flex justify-between items-center mb-6 cursor-pointer" id="analysisHeader">
+                <h2 class="text-2xl font-bold">Expense Analysis</h2>
+                <button id="toggleAnalysisBtn" class="p-2 rounded-full hover:bg-gray-200"><svg id="toggleAnalysisIcon" class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
+            </div>
+            <div id="analysisCharts" class="grid grid-cols-1 lg:grid-cols-3 gap-8"><div class="chart-container"><canvas id="categoryChart"></canvas></div><div class="chart-container"><canvas id="companyChart"></canvas></div><div class="chart-container"><canvas id="monthlyExpenseChart"></canvas></div></div>
+        </section>
+
+        <!-- Form Section -->
+        <section id="form-section" class="bg-white p-6 rounded-xl shadow-md mb-8">
+            <h2 class="text-2xl font-bold mb-4">Add New Transaction</h2>
+            <form id="cashForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700 mb-2">Transaction Type</label><div class="flex items-center space-x-4"><label class="flex items-center"><input type="radio" name="type" value="Cash In" class="form-radio h-4 w-4 text-green-600" checked><span class="ml-2 text-gray-700">Cash In</span></label><label class="flex items-center"><input type="radio" name="type" value="Cash Out" class="form-radio h-4 w-4 text-red-600"><span class="ml-2 text-gray-700">Cash Out</span></label></div></div>
+                 <div><label for="date" class="block text-sm font-medium text-gray-700">Date</label><input type="date" id="date" name="date" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" required></div>
+                 <div><label for="amount" class="block text-sm font-medium text-gray-700">Amount (RM)</label><input type="number" id="amount" name="amount" step="0.01" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" required></div>
+                 <div><label for="company-input" class="block text-sm font-medium text-gray-700">Company / Department</label><input list="company-list" id="company-input" name="company" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Select or type to add..." required><datalist id="company-list"></datalist></div>
+                 <div><label for="category-input" class="block text-sm font-medium text-gray-700">Category</label><input list="category-list" id="category-input" name="category" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Select or type to add..." required><datalist id="category-list"></datalist></div>
+                 <div class="md:col-span-2"><label for="payTo" class="block text-sm font-medium text-gray-700">Pay To</label><input type="text" id="payTo" name="payTo" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" required></div>
+                 <div class="md:col-span-2"><label for="description" class="block text-sm font-medium text-gray-700">Description</label><input type="text" id="description" name="description" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" required></div>
+                 <div class="md:col-span-2"><label for="receipt" class="block text-sm font-medium text-gray-700">Scan/Upload Receipt (Image or PDF)</label><input type="file" id="receipt" name="receipt" accept="image/*,application/pdf" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"></div>
+                 <div class="mt-6 text-right md:col-span-2"><button type="submit" id="submitButton" class="inline-flex items-center justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"><span id="buttonText">Add Transaction</span><div id="buttonLoader" class="loader ease-linear rounded-full border-4 border-t-4 h-5 w-5 ml-2 hidden"></div></button></div>
+            </form>
+        </section>
+
+        <!-- Report Generation Section -->
+        <section class="bg-white p-6 rounded-xl shadow-md mb-8">
+            <h2 class="text-2xl font-bold mb-4">Generate Report</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                 <div><label for="startDate" class="block text-sm font-medium text-gray-700">Start Date</label><input type="date" id="startDate" name="startDate" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" required></div>
+                 <div><label for="endDate" class="block text-sm font-medium text-gray-700">End Date</label><input type="date" id="endDate" name="endDate" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" required></div>
+                 <div><button id="generateReportBtn" class="w-full py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Generate Report</button></div>
+            </div>
+        </section>
+
+        <!-- Transaction Log -->
+        <section id="log-section" class="bg-white p-6 rounded-xl shadow-md">
+            <h2 class="text-2xl font-bold mb-4">Transaction History</h2>
+            <div id="logLoader" class="flex justify-center items-center py-8"><div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div></div>
+            <div class="overflow-x-auto">
+                <table id="transactionTable" class="min-w-full divide-y divide-gray-200 hidden">
+                    <thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pay To</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th></tr></thead>
+                    <tbody id="transactionLog" class="bg-white divide-y divide-gray-200"></tbody>
+                </table>
+                <p id="no-transactions" class="text-center text-gray-500 py-8 hidden">No transactions found.</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modals -->
+    <div id="receiptModal" class="hidden fixed z-10 inset-0 overflow-y-auto"><div class="flex items-center justify-center min-h-screen p-4"><div class="fixed inset-0 bg-gray-500 bg-opacity-75"></div><div class="bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full"><div class="bg-white px-4 pt-5 pb-4 sm:p-6"><h3 class="text-lg font-medium text-gray-900">Receipt</h3><div class="mt-4"><img id="modalImage" src="" class="w-full h-auto rounded-md"></div></div><div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse"><button type="button" class="close-modal-btn mt-3 w-full sm:mt-0 sm:w-auto py-2 px-4 rounded-md border shadow-sm">Close</button></div></div></div></div>
+    <div id="deleteConfirmModal" class="hidden fixed z-20 inset-0 overflow-y-auto"><div class="flex items-center justify-center min-h-screen p-4"><div class="fixed inset-0 bg-gray-800 bg-opacity-60"></div><div class="bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:max-w-md sm:w-full"><div class="bg-white p-6"><h3 class="text-xl font-bold text-red-700">Confirm Deletion</h3><p class="mt-2 text-gray-600">Are you sure you want to delete this transaction? This action cannot be undone.</p></div><div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3"><button type="button" id="cancelDelete" class="py-2 px-4 rounded-md border shadow-sm">Cancel</button><button type="button" id="confirmDelete" class="py-2 px-4 rounded-md text-white bg-red-600 hover:bg-red-700 shadow-sm">Delete</button></div></div></div></div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed bottom-5 right-5 p-4 rounded-lg shadow-lg"><p id="toast-message" class="text-white"></p></div>
+
+    <script>
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztNYbei5G2cFYSgjK6ocBWgMGx0xC1acmBwvgtAbuGYhognUeOmtAZCjj0OZcNV99lxA/exec';
+
+        // Global state
+        let allTransactions = [];
+        let categoryChart, companyChart, monthlyExpenseChart;
+        let rowToDelete = null;
+        const defaultDate = new Date(); 
+
+        // DOM Elements
+        const form = document.getElementById('cashForm');
+        const submitButton = document.getElementById('submitButton');
+        const buttonText = document.getElementById('buttonText');
+        const buttonLoader = document.getElementById('buttonLoader');
+        const logLoader = document.getElementById('logLoader');
+        const transactionTable = document.getElementById('transactionTable');
+        const transactionLog = document.getElementById('transactionLog');
+        const noTransactionsMessage = document.getElementById('no-transactions');
+        const currentBalanceEl = document.getElementById('currentBalance');
+        const totalInEl = document.getElementById('totalIn');
+        const totalOutEl = document.getElementById('totalOut');
+        const receiptModal = document.getElementById('receiptModal');
+        const modalImage = document.getElementById('modalImage');
+        const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+        const cancelDeleteBtn = document.getElementById('cancelDelete');
+        const confirmDeleteBtn = document.getElementById('confirmDelete');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        const dateInput = document.getElementById('date');
+        const companyDatalist = document.getElementById('company-list');
+        const categoryDatalist = document.getElementById('category-list');
+        const analysisHeader = document.getElementById('analysisHeader');
+        const analysisCharts = document.getElementById('analysisCharts');
+        const toggleAnalysisIcon = document.getElementById('toggleAnalysisIcon');
+        const generateReportBtn = document.getElementById('generateReportBtn');
+        
+        // Initial setup
+        dateInput.valueAsDate = defaultDate;
+
+        // --- Event Listeners ---
+        form.addEventListener('submit', handleFormSubmit);
+        analysisHeader.addEventListener('click', toggleAnalysisSection);
+        document.addEventListener('DOMContentLoaded', initializeApp);
+        cancelDeleteBtn.addEventListener('click', () => deleteConfirmModal.classList.add('hidden'));
+        confirmDeleteBtn.addEventListener('click', executeDelete);
+        document.querySelectorAll('.close-modal-btn').forEach(btn => btn.addEventListener('click', () => {
+            btn.closest('.fixed').classList.add('hidden');
+        }));
+        generateReportBtn.addEventListener('click', generateReport);
+
+        // --- Core Functions ---
+        function initializeApp() {
+            fetchAllData();
+            if (window.innerWidth < 768) {
+                analysisCharts.classList.add('hidden');
+                toggleAnalysisIcon.style.transform = 'rotate(0deg)';
+            } else {
+                toggleAnalysisIcon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            if (!GOOGLE_SCRIPT_URL) { showToast('Error: Google Apps Script URL is not set.', true); return; }
+            setLoadingState(true);
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            const file = formData.get('receipt');
+            
+            // Use a timeout to allow the UI to update before the script potentially hangs
+            setTimeout(() => {
+                if (file && file.size > 0) {
+                    const reader = new FileReader();
+                    reader.onload = event => {
+                        data.receipt = { base64: event.target.result.split(',')[1], type: file.type, name: file.name };
+                        sendData(data);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    data.receipt = null;
+                    sendData(data);
+                }
+            }, 100);
+        }
+
+        async function sendData(data) {
+            try {
+                // Using fetch with a POST request. The 'no-cors' mode is a common workaround for simple Google Apps Script deployments,
+                // but it means we won't get a direct response back. We rely on the fetch completing without a network error.
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Important: Prevents CORS errors but also response reading
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ action: 'create', ...data })
+                });
+
+                // Since we can't read the response with 'no-cors', we optimistically assume success.
+                showToast('Transaction submitted successfully!');
+                form.reset();
+                dateInput.valueAsDate = defaultDate; // Reset to default date
+                
+                // Fetch all data again to show the new transaction. There might be a slight delay
+                // as the Google Sheet updates.
+                setTimeout(fetchAllData, 2000); // Wait 2 seconds before refetching
+
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error submitting transaction. Please try again.', true);
+            } finally {
+                setLoadingState(false);
+            }
+        }
+        
+        async function fetchAllData() {
+            logLoader.classList.remove('hidden');
+            transactionTable.classList.add('hidden');
+            noTransactionsMessage.classList.add('hidden');
+            try {
+                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=readAll`);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                allTransactions = data.transactions;
+                
+                populateDatalist(companyDatalist, data.companies);
+                populateDatalist(categoryDatalist, data.categories);
+                
+                updateDashboard(allTransactions);
+                populateTable(allTransactions);
+                renderCharts(allTransactions);
+
+            } catch (error) {
+                handleFetchError(error);
+            } finally {
+                logLoader.classList.add('hidden');
+            }
+        }
+
+        function executeDelete() {
+            if (!rowToDelete) return;
+            const timestamp = rowToDelete.dataset.timestamp;
+            setLoadingState(true, confirmDeleteBtn);
+            
+            // Using a timeout for the same reason as in handleFormSubmit
+            setTimeout(() => {
+                fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', timestamp: timestamp })
+                })
+                .then(() => {
+                    showToast('Transaction deletion submitted.');
+                    deleteConfirmModal.classList.add('hidden');
+                    setTimeout(fetchAllData, 2000); // Refetch data after a delay
+                })
+                .catch(error => {
+                    console.error('Delete Error:', error);
+                    showToast('Failed to submit deletion request.', true);
+                })
+                .finally(() => {
+                    setLoadingState(false, confirmDeleteBtn);
+                    rowToDelete = null;
+                });
+            }, 100);
+        }
+
+        function generateReport() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            if (!startDate || !endDate) { showToast("Please select both a start and end date.", true); return; }
+
+            const start = new Date(startDate); const end = new Date(endDate); end.setHours(23, 59, 59, 999);
+            const transactionsInPeriod = allTransactions.filter(t => { const d = new Date(t[1]); return d >= start && d <= end; });
+            const transactionsBeforePeriod = allTransactions.filter(t => new Date(t[1]) < start);
+            
+            let openingBalance = 0;
+            transactionsBeforePeriod.forEach(t => { const amount = parseFloat(t[2]) || 0; if (t[3] === 'Cash In') openingBalance += amount; else openingBalance -= amount; });
+
+            let totalIn = 0, totalOut = 0;
+            const generationTimestamp = new Date().toLocaleString('en-MY', { dateStyle: 'full', timeStyle: 'short' });
+            const location = "Bandar Baru Bangi, Selangor, Malaysia";
+            let reportHtml = `<html><head><title>Petty Cash Report</title><script src="https://cdn.tailwindcss.com"><\/script><style>body{font-family:sans-serif} @media print{.no-print{display:none}}</style></head><body class="p-8"><button onclick="window.print()" class="no-print fixed top-4 right-4 bg-blue-500 text-white py-2 px-4 rounded">Print</button><h1 class="text-3xl font-bold mb-2">Treebrothers Petty Cash Report</h1><p class="text-xs text-gray-500">Generated on: ${generationTimestamp}</p><p class="mb-6">Period: <strong>${startDate}</strong> to <strong>${endDate}</strong></p><div class="mb-4 p-4 bg-gray-100 rounded-lg"><p><strong>Opening Balance:</strong> RM ${openingBalance.toFixed(2)}</p></div><table class="min-w-full divide-y divide-gray-200 border"><thead class="bg-gray-50"><tr><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Description</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Company</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Category</th><th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">In (RM)</th><th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Out (RM)</th></tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+            
+            transactionsInPeriod.forEach(t => {
+                const [ts, date, amount, type, company, cat, payTo, desc] = t;
+                const cashIn = type === 'Cash In' ? (parseFloat(amount) || 0) : 0;
+                const cashOut = type === 'Cash Out' ? (parseFloat(amount) || 0) : 0;
+                totalIn += cashIn; totalOut += cashOut;
+                reportHtml += `<tr><td class="px-4 py-2">${new Date(date).toLocaleDateString('en-GB')}</td><td class="px-4 py-2">${desc||''} (Pay To: ${payTo||''})</td><td class="px-4 py-2">${company||''}</td><td class="px-4 py-2">${cat||''}</td><td class="px-4 py-2 text-right">${cashIn > 0 ? cashIn.toFixed(2):'-'}</td><td class="px-4 py-2 text-right">${cashOut > 0 ? cashOut.toFixed(2):'-'}</td></tr>`;
+            });
+
+            const closingBalance = openingBalance + totalIn - totalOut;
+            reportHtml += `</tbody></table><div class="mt-4 p-4 bg-gray-100 rounded-lg"><p><strong>Total In:</strong> RM ${totalIn.toFixed(2)}</p><p><strong>Total To Be Reimbursed (Total Out):</strong> RM ${totalOut.toFixed(2)}</p><p class="font-bold">Closing Balance: RM ${closingBalance.toFixed(2)}</p></div><div class="mt-24 grid grid-cols-4 gap-8 text-center text-sm"><div class="pt-12 border-t border-gray-400">Prepared By: Admin</div><div class="pt-12 border-t border-gray-400">Checked By: HOD</div><div class="pt-12 border-t border-gray-400">Approved By: HR</div><div class="pt-12 border-t border-gray-400">Verified By: Account</div></div><div class="mt-16 flex justify-center text-center text-sm"><div class="pt-12 border-t border-gray-400 w-1/4">Consent By: Managing Partner</div></div></body></html>`;
+            const reportWindow = window.open("", "_blank");
+            reportWindow.document.write(reportHtml); reportWindow.document.close();
+        }
+
+        function setLoadingState(isLoading, button = submitButton) {
+            const textEl = button.querySelector('span'); const loaderEl = button.querySelector('.loader');
+            button.disabled = isLoading;
+            if(textEl) textEl.style.display = isLoading ? 'none' : 'inline';
+            if(loaderEl) loaderEl.style.display = isLoading ? 'inline-block' : 'none';
+        }
+        function populateDatalist(datalistElement, options) { datalistElement.innerHTML = ''; options.forEach(o => { if(o){const e=document.createElement('option');e.value=o;datalistElement.appendChild(e)} }); }
+        function updateDashboard(transactions) { let t=0,o=0;transactions.forEach(r=>{const n=parseFloat(r[2])||0,s=r[3];"Cash In"===s?t+=n:"Cash Out"===s&&(o+=n)});currentBalanceEl.textContent=`RM ${(t-o).toFixed(2)}`;totalInEl.textContent=`RM ${t.toFixed(2)}`;totalOutEl.textContent=`RM ${o.toFixed(2)}`; }
+        
+        function populateTable(transactions) {
+            transactionLog.innerHTML = '';
+            if (transactions.length === 0) {
+                noTransactionsMessage.classList.remove('hidden');
+                transactionTable.classList.add('hidden');
+                return;
+            }
+            noTransactionsMessage.classList.add('hidden');
+            transactionTable.classList.remove('hidden');
+            transactions.slice().reverse().forEach(t => {
+                const [ts, date, amount, type, company, category, payTo, description, receiptUrl] = t;
+                const row = transactionLog.insertRow();
+                row.dataset.timestamp = new Date(ts).toISOString();
+                const formattedDate = new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                row.innerHTML = `<td class="p-3 text-sm">${formattedDate}</td><td class="p-3 text-sm">${payTo||''}</td><td class="p-3 text-sm">${description||''}</td><td class="p-3 text-sm">${category||''}</td><td class="p-3 text-sm font-medium ${type==='Cash In'?'text-green-600':'text-red-600'}">RM ${(parseFloat(amount)||0).toFixed(2)}</td><td class="p-3 text-sm"></td><td class="p-3 text-sm"></td>`;
+                
+                // BUG FIX: Always open receipt in a new tab to handle all file types correctly.
+                if (receiptUrl) {
+                    const btn = document.createElement('button');
+                    btn.textContent = 'View';
+                    btn.className = 'text-indigo-600 hover:text-indigo-900';
+                    btn.onclick = () => {
+                        window.open(receiptUrl, '_blank');
+                    };
+                    row.cells[5].appendChild(btn);
+                }
+
+                const delBtn = document.createElement('button');
+                delBtn.innerHTML = `<svg class="w-5 h-5 text-red-500 hover:text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+                delBtn.onclick = () => {
+                    rowToDelete = row;
+                    deleteConfirmModal.classList.remove('hidden');
+                };
+                row.cells[6].appendChild(delBtn);
+            });
+        }
+
+        function toggleAnalysisSection() { const isHidden = analysisCharts.classList.toggle('hidden'); toggleAnalysisIcon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)'; }
+        function showToast(message, isError = false) { toast.classList.remove('hidden'); toastMessage.textContent = message; toast.className = `fixed bottom-5 right-5 p-4 rounded-lg shadow-lg text-white ${isError ? 'bg-red-600' : 'bg-gray-800'}`; setTimeout(() => { toast.classList.add('hidden'); }, 3000); }
+        function handleFetchError(error) { console.error('Fetch Error:', error); showToast('Could not fetch data. The script may be updating. Please try again in a moment.', true); noTransactionsMessage.textContent = 'Error loading transactions.'; noTransactionsMessage.classList.remove('hidden'); }
+        function renderCharts(transactions) { const expenseData = transactions.filter(t => t[3] === 'Cash Out'); renderPieChart('categoryChart', 'Expenses by Category', expenseData, 5); renderPieChart('companyChart', 'Expenses by Company', expenseData, 4); renderBarChart('monthlyExpenseChart', 'Monthly Expenses', expenseData); }
+        function processDataForPieChart(data, index) { const summary = data.reduce((acc, row) => { const key = row[index] || 'Uncategorized'; const amount = parseFloat(row[2]) || 0; acc[key] = (acc[key] || 0) + amount; return acc; }, {}); return { labels: Object.keys(summary), data: Object.values(summary) }; }
+        function renderPieChart(canvasId, title, data, dataIndex) {
+            let chartInstance = Chart.getChart(canvasId);
+            if (chartInstance) chartInstance.destroy();
+            const { labels, data: values } = processDataForPieChart(data, dataIndex);
+            new Chart(document.getElementById(canvasId).getContext('2d'), { type: 'pie', data: { labels, datasets: [{ data: values, backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#E7E9ED', '#8A2BE2'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: title } } } });
+        }
+        function renderBarChart(canvasId, title, data) {
+            let chartInstance = Chart.getChart(canvasId);
+            if (chartInstance) chartInstance.destroy();
+            const monthlyData = data.reduce((acc, row) => { const month = new Date(row[1]).toLocaleString('default', { month: 'short', year: 'numeric' }); const amount = parseFloat(row[2]) || 0; acc[month] = (acc[month] || 0) + amount; return acc; }, {});
+            const sortedMonths = Object.keys(monthlyData).sort((a,b) => new Date(a) - new Date(b));
+            const sortedValues = sortedMonths.map(month => monthlyData[month]);
+            new Chart(document.getElementById(canvasId).getContext('2d'), { type: 'bar', data: { labels: sortedMonths, datasets: [{ label: 'Total Expenses', data: sortedValues, backgroundColor: '#36A2EB' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: title } } } });
+        }
+    </script>
+</body>
+</html>
